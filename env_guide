@@ -1,106 +1,127 @@
-# Гайд: откуда брать каждое значение для .env
 
-```bash
-cp .env.example .env
-```
+BYBIT_API_KEY / BYBIT_API_SECRET
 
-Бот сам подхватит `.env` при старте (через `dotenvy`), руками `export`
-делать не обязательно — но реальные переменные окружения, если они заданы,
-всегда имеют приоритет над файлом.
+1. Go to bybit.com, sign in to your account, click your avatar in the top-right corner, then open API (or go directly to "https://www.bybit.com/app/user/api-management").
+2. Click Create New Key and choose System-generated API Keys (not Connect to Third-Party App).
+3. Enable only the permissions the bot actually needs:
+   - Contract → Orders: Read-Write
+   - Contract → Positions: Read-Write
+   - Leave everything else disabled, especially Withdrawal permissions. A trading bot should never have access to withdrawals.
+4. It is strongly recommended to bind the API key to the IP address of the server running the bot. This makes the key useless if it ever leaks.
+5. Bybit will show the API Key and API Secret only once. The secret cannot be viewed again later. If you lose it, you'll need to create a new key.
 
----
+→ "BYBIT_API_KEY" = your API Key
+→ "BYBIT_API_SECRET" = your API Secret
 
-## BYBIT_API_KEY / BYBIT_API_SECRET
+Testnet setup (recommended for your first run)
 
-1. Зайдите на **bybit.com** → войдите в аккаунт → аватар в правом верхнем
-   углу → **API** (или напрямую: `https://www.bybit.com/app/user/api-management`).
-2. **Create New Key** → тип **System-generated API Keys** (не "Connect to
-   Third-Party App").
-3. Права доступа — включите только то, что реально нужно боту:
-   - **Contract → Orders**: Read-Write
-   - **Contract → Positions**: Read-Write
-   - Всё остальное (особенно **Withdrawal**) — оставьте выключенным. Ключу
-     для торгового бота не должны быть доступны выводы средств.
-4. Рекомендуется привязать ключ к **IP-адресу** сервера, где будет крутиться
-   бот (там же в настройках ключа) — так ключ бесполезен, если утечёт.
-5. Bybit покажет **API Key** и **API Secret** один раз — секрет больше нигде
-   не показывается, если потеряли, придётся создавать новый ключ.
-   → `BYBIT_API_KEY` = API Key, `BYBIT_API_SECRET` = API Secret.
-
-### Для тестнета (рекомендуется начать с него)
-
-- Отдельный сайт: **`https://testnet.bybit.com`**, регистрация отдельная от
-  основного аккаунта.
-- Там же API Management → создаёте ключ так же, как выше.
-- В `.env` поставьте `BYBIT_TESTNET=true` — тогда бот пойдёт на
-  `api-testnet.bybit.com` и будет использовать тестовые ключи. На
-  тестнете можно запросить фейковые USDT/USDC через встроенный faucet, чтобы
-  проверить реальную отправку ордеров без риска.
+- Use the separate website: "https://testnet.bybit.com" (testnet accounts are separate from production accounts).
+- Create API keys in API Management exactly the same way as on the main platform.
+- Set "BYBIT_TESTNET=true" in your ".env" file. The bot will then connect to "api-testnet.bybit.com" and use your testnet credentials.
+- You can request fake USDT/USDC from the built-in faucet and test real order placement without risking actual funds.
 
 ---
 
-## TELEGRAM_BOT_TOKEN
+TELEGRAM_BOT_TOKEN
 
-1. В Telegram найдите официального бота **@BotFather**.
-2. Отправьте `/newbot`, задайте имя и юзернейм (должен заканчиваться на `bot`).
-3. BotFather пришлёт токен вида `123456789:AAExxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`.
-   → это и есть `TELEGRAM_BOT_TOKEN`.
-4. Если бот уже создан раньше — токен можно перевыпустить командой
-   `/token` в диалоге с BotFather (старый токен перестанет работать).
+1. In Telegram, find the official bot @BotFather.
 
-## TELEGRAM_CHAT_ID
+2. Send "/newbot" and choose a bot name and username (the username must end with "bot").
 
-Куда именно бот пришлёт `/gm`, определяется этим ID. Способ получения
-зависит от того, личка это, группа или канал.
+3. BotFather will send you a token that looks like:
+   
+   "123456789:AAExxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+   
+   This is your "TELEGRAM_BOT_TOKEN".
 
-**Личные сообщения (проще всего):**
-1. Найдите своего бота в Telegram по юзернейму и отправьте ему любое
-   сообщение (например `/start`) — боты не видят сообщений, пока пользователь
-   не написал первым.
-2. В браузере откройте:
-   `https://api.telegram.org/bot<ВАШ_ТОКЕН>/getUpdates`
-3. В JSON-ответе найдите `"chat":{"id":123456789,...}` — это число (может
-   быть отрицательным для групп) и есть `TELEGRAM_CHAT_ID`.
-
-**Группа:**
-1. Добавьте бота в группу.
-2. Отправьте в группе любое сообщение.
-3. Откройте тот же URL `getUpdates` — `chat.id` группы будет отрицательным
-   числом, например `-123456789`.
-
-**Канал / супергруппа:**
-1. Добавьте бота **администратором** канала/супергруппы (без прав админа
-   `sendMessage` работать не будет).
-2. Опубликуйте любой пост/сообщение.
-3. `getUpdates` — id супергрупп и каналов обычно выглядит как
-   `-100xxxxxxxxxx` (с префиксом `-100`).
-
-**Быстрая альтернатива без ручного парсинга JSON:** напишите личному боту
-**@userinfobot** или **@RawDataBot** в Telegram — они сразу пришлют в ответ
-ваш числовой chat_id (для группы — добавьте их временно в неё и посмотрите
-id группы, затем удалите).
+4. If you already have a bot, you can regenerate the token using the "/token" command in BotFather. The old token will stop working immediately.
 
 ---
 
-## Параметры стратегии — константы не привязаны к внешнему сервису, задаются вами
+TELEGRAM_CHAT_ID
 
-| Переменная | Что это | Как выбрать |
-|---|---|---|
-| `DRY_RUN` | `true`/`false` | Держите `true`, пока не убедитесь по логам, что бот находит адекватные пары и спреды. Переключайте на `false` только осознанно. |
-| `LEVERAGE` | плечо на обеих ногах | 10 — то, что вы просили изначально. Помните: чем выше плечо, тем меньше расхождение цен между ногами нужно, чтобы получить маржин-колл на одной из них, а бот их не закрывает сам. |
-| `NOTIONAL_USDT` / `NOTIONAL_USDC` | размер ноги в долларах | 100/100 — как в исходном запросе. Ограничено также `minOrderQty` конкретного инструмента на Bybit — если монета дорогая, а ноционал маленький, ордер может не пройти по минимальному объёму. |
-| `ENTRY_SPREAD_PCT` | порог входа, доля (0.004 = 0.4%) | Возьмите вашу taker-комиссию ×2 (обе ноги) как нижнюю границу и добавьте запас под funding-дифференциал между USDT- и USDC-перпом по интересующим монетам — иначе спред может быть "бумажным" и съедаться комиссией. |
-| `POLL_INTERVAL_SECS` | частота опроса тикеров | 3 — компромисс между нагрузкой на rate-limit Bybit и скоростью реакции. Bybit ограничивает публичные market-эндпоинты по IP; при большом числе пар и слишком частом опросе можно упереться в лимит (в логах будет видно по ошибке 429/`retCode`). |
+This determines where the bot sends the "/gm" message. The process depends on whether you're using a private chat, a group, or a channel.
+
+Private chat (the easiest option)
+
+1. Find your bot by username in Telegram and send it any message, for example "/start".
+   Bots cannot see messages until the user contacts them first.
+
+2. Open the following URL in your browser:
+   
+   "https://api.telegram.org/bot<YOUR_TOKEN>/getUpdates"
+
+3. In the JSON response, find:
+   
+   ""chat":{"id":123456789,...}"
+   
+   That number is your "TELEGRAM_CHAT_ID".
+
+Group chat
+
+1. Add the bot to the group.
+2. Send any message in the group.
+3. Open the same "getUpdates" URL and look for the group's "chat.id".
+
+Group IDs are negative numbers, for example:
+
+"-123456789"
+
+Channel or supergroup
+
+1. Add the bot as an administrator of the channel or supergroup.
+   Without admin permissions, "sendMessage" will not work.
+2. Publish any post or message.
+3. Check "getUpdates".
+
+Channel and supergroup IDs usually look like:
+
+"-100xxxxxxxxxx"
+
+Faster alternative
+
+Instead of manually parsing JSON, you can simply message @userinfobot or @RawDataBot in Telegram.
+
+They will immediately reply with your numeric "chat_id".
+
+For groups, temporarily add one of these bots to the group, retrieve the group ID, and remove the bot afterwards.
 
 ---
 
-## Проверка перед реальным запуском
+Strategy parameters
 
-1. `BYBIT_TESTNET=true`, `DRY_RUN=true` → `cargo run --release` → убедитесь,
-   что в логах появляется "Found N base coins..." и периодически видно
-   найденные спреды.
-2. `BYBIT_TESTNET=true`, `DRY_RUN=false` → проверьте, что ордера реально
-   создаются на тестнете (посмотрите в интерфейсе testnet.bybit.com) и что
-   `/gm` действительно приходит в выбранный Telegram-чат.
-3. Только после этого переключайтесь на `BYBIT_TESTNET=false` с реальными
-   ключами и небольшим `NOTIONAL_USDT`/`NOTIONAL_USDC` для первого прогона.
+These values are not tied to any external service — you choose them yourself.
+
+Variable| Description| How to choose
+"DRY_RUN"| "true" or "false"| Keep this set to "true" until you've confirmed from the logs that the bot is finding reasonable pairs and spreads. Switch to "false" only when you're confident it's behaving as expected.
+"LEVERAGE"| Leverage used on both legs| "10x" is what you originally requested. Keep in mind that higher leverage means a smaller price divergence is enough to trigger liquidation on one side of the trade, and the bot does not automatically close positions.
+"NOTIONAL_USDT" / "NOTIONAL_USDC"| Position size per leg in dollars| "100/100" matches the original configuration. Actual order size is also limited by the instrument's "minOrderQty" on Bybit. If the asset price is high and your notional value is too small, the order may fail due to minimum quantity requirements.
+"ENTRY_SPREAD_PCT"| Entry threshold as a fraction ("0.004 = 0.4%")| A good starting point is your taker fee multiplied by two (since both legs pay fees), plus some extra margin for funding rate differences between USDT and USDC perpetual contracts. Otherwise, an apparent spread may disappear after fees and funding costs.
+"POLL_INTERVAL_SECS"| Market polling frequency| "3" seconds is a reasonable balance between responsiveness and Bybit rate limits. Public market endpoints are rate-limited per IP address, so polling too aggressively across many symbols can trigger "429" or "retCode" errors in the logs.
+
+---
+
+Checklist before going live
+
+1. Set "BYBIT_TESTNET=true" and "DRY_RUN=true", then run:
+   
+   cargo run --release
+   
+   Make sure the logs show something like:
+   
+   ""Found N base coins...""
+   
+   and that spread opportunities are being detected periodically.
+
+2. Switch to:
+   
+   "BYBIT_TESTNET=true"
+   "DRY_RUN=false"
+   
+   Verify that orders are actually being placed on the testnet (check them in the "testnet.bybit.com" interface) and confirm that "/gm" messages arrive in the selected Telegram chat.
+
+3. Only after that should you switch to:
+   
+   "BYBIT_TESTNET=false"
+   
+   using your production API keys and a small "NOTIONAL_USDT" / "NOTIONAL_USDC" value for the first live run.
