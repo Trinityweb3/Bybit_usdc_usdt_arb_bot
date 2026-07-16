@@ -8,7 +8,6 @@ use std::env;
 use std::time::Duration;
 use tracing::{error, info, warn};
 
-/// ---- Configuration (override via env vars) ----------------------------
 struct Config {
     api_key: String,
     api_secret: String,
@@ -17,7 +16,7 @@ struct Config {
     leverage: u32,
     notional_usdt: f64,
     notional_usdc: f64,
-    entry_spread_pct: f64, // e.g. 0.004 = 0.4%
+    entry_spread_pct: f64, 
     poll_interval_secs: u64,
     telegram_bot_token: String,
     telegram_chat_id: String,
@@ -59,15 +58,9 @@ struct Pair {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Loads variables from a .env file in the current directory into the
-    // process environment, if one exists. Silently does nothing if there's
-    // no .env file - real environment variables always take priority.
     let _ = dotenvy::dotenv();
 
-    // Guarantees INFO-level logs (order placements, discovered spreads, etc.)
-    // always show up in the terminal, even if RUST_LOG isn't set. Set
-    // RUST_LOG=debug (or similar) to see more detail.
-    let filter = tracing_subscriber::EnvFilter::try_from_default_env()
+    let filter: tracing_subscriber::EnvFilter = tracing_subscriber::EnvFilter::try_from_default_env()
         .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info"));
     tracing_subscriber::fmt().with_env_filter(filter).init();
 
@@ -95,8 +88,6 @@ async fn main() -> Result<()> {
     let pairs = discover_pairs(&client).await?;
     info!("Found {} base coins tradable against both USDT and USDC", pairs.len());
 
-    // Base coins we've already entered - the bot only opens once per coin
-    // and never manages an exit, so we never remove entries from this set.
     let mut entered: HashSet<String> = HashSet::new();
 
     loop {
@@ -167,10 +158,7 @@ async fn run_cycle(
             None => continue,
         };
 
-        // Two possible directions: buy cheap leg, sell expensive leg.
-        // Spread A: sell USDT-perp (bid), buy USDC-perp (ask)
         let spread_a = (usdt_ticker.bid1_price - usdc_ticker.ask1_price) / usdc_ticker.ask1_price;
-        // Spread B: sell USDC-perp (bid), buy USDT-perp (ask)
         let spread_b = (usdc_ticker.bid1_price - usdt_ticker.ask1_price) / usdt_ticker.ask1_price;
 
         let (direction, spread, long_symbol, short_symbol) = if spread_a > spread_b {
@@ -221,28 +209,19 @@ async fn open_position(
     usdt_ticker: &bybit::Ticker,
     usdc_ticker: &bybit::Ticker,
 ) -> Result<String> {
-    // Size the position: same token quantity on both legs, targeting
-    // ~notional_usdt / ~notional_usdc respectively. We take the more
-    // conservative (smaller) quantity of the two, then round down to
-    // whichever leg has the coarser qty step so both orders are valid.
-    let qty_from_usdt = cfg.notional_usdt / usdt_ticker.ask1_price.max(usdt_ticker.bid1_price);
-    let qty_from_usdc = cfg.notional_usdc / usdc_ticker.ask1_price.max(usdc_ticker.bid1_price);
-    let raw_qty = qty_from_usdt.min(qty_from_usdc);
+    let qty_from_usdt: f64 = cfg.notional_usdt / usdt_ticker.ask1_price.max(usdt_ticker.bid1_price);
+    let qty_from_usdc: f64 = cfg.notional_usdc / usdc_ticker.ask1_price.max(usdc_ticker.bid1_price);
+    let raw_qty: f64 = qty_from_usdt.min(qty_from_usdc);
 
     let usdt_step: f64 = pair.usdt.lot_size_filter.qty_step.parse().unwrap_or(1.0);
     let usdc_step: f64 = pair.usdc.lot_size_filter.qty_step.parse().unwrap_or(1.0);
-    let coarser_step_str = if usdt_step >= usdc_step {
+    let coarser_step_str: &String = if usdt_step >= usdc_step {
         &pair.usdt.lot_size_filter.qty_step
     } else {
         &pair.usdc.lot_size_filter.qty_step
     };
     let step: f64 = coarser_step_str.parse().unwrap_or(1.0);
 
-    // Bybit enforces a minimum order VALUE (commonly ~$5 notional) per leg,
-    // on top of the lot-size minimum qty. Flooring the qty to the step can
-    // push the resulting notional just under that floor even when the
-    // configured NOTIONAL_USDT/NOTIONAL_USDC was above it, so if that
-    // happens we try rounding up one step instead before giving up.
     const MIN_ORDER_VALUE_BUFFER: f64 = 5.5; // small buffer above Bybit's ~$5 floor
 
     let notional_at = |qty: f64| -> (f64, f64) {
@@ -294,8 +273,8 @@ async fn open_position(
     client.set_leverage(&pair.usdt.symbol, cfg.leverage).await?;
     client.set_leverage(&pair.usdc.symbol, cfg.leverage).await?;
 
-    let long_result = client.place_market_order(long_symbol, "Buy", &qty_str, false).await;
-    let short_result = client.place_market_order(short_symbol, "Sell", &qty_str, false).await;
+    let long_result: std::prelude::v1::Result<String, anyhow::Error> = client.place_market_order(long_symbol, "Buy", &qty_str, false).await;
+    let short_result: std::prelude::v1::Result<String, anyhow::Error> = client.place_market_order(short_symbol, "Sell", &qty_str, false).await;
 
     match (&long_result, &short_result) {
         (Ok(_), Ok(_)) => Ok(qty_str),
