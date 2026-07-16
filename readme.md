@@ -7,7 +7,7 @@ other using the same token quantity (roughly $100 notional on each side by
 default, with 10x leverage).
 
 **The bot only opens positions.** It does not close them automatically. Once it
-finds a spread, opens both legs, and sends a `/gm` message to Telegram, it
+finds a spread, opens both legs, and sends a `/gm` message to Telegram (For Pushover), it
 considers that coin done and never touches it again during that session.
 
 Position management — exits, stop losses, profit taking — is entirely up to you.
