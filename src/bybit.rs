@@ -219,7 +219,6 @@ impl BybitClient {
         match self.post_signed("/v5/position/set-leverage", body).await {
             Ok(_) => Ok(()),
             Err(e) => {
-                // 110043 = leverage not modified (already set) - safe to ignore
                 if e.to_string().contains("110043") {
                     Ok(())
                 } else {
@@ -268,7 +267,6 @@ fn check_ret_code(resp: &Value) -> Result<()> {
     Ok(())
 }
 
-/// Number of decimal places implied by a step string like "0.001".
 pub fn step_decimals(step_str: &str) -> usize {
     match step_str.split_once('.') {
         Some((_, frac)) => frac.len(),
@@ -276,9 +274,6 @@ pub fn step_decimals(step_str: &str) -> usize {
     }
 }
 
-/// Rounds `value` down to the nearest multiple of `step`, returned as an
-/// exact multiple (computed via an integer step count to avoid float
-/// drift), so the result can safely be bumped by one more step later.
 pub fn floor_to_step(value: f64, step_str: &str) -> f64 {
     let step: f64 = step_str.parse().unwrap_or(1.0);
     if step <= 0.0 {
@@ -288,8 +283,6 @@ pub fn floor_to_step(value: f64, step_str: &str) -> f64 {
     n_steps * step
 }
 
-/// Formats a quantity that is already a multiple of `step_str` with the
-/// right number of decimal places for the Bybit API.
 pub fn format_qty(value: f64, step_str: &str) -> String {
     format!("{:.*}", step_decimals(step_str), value.max(0.0))
 }

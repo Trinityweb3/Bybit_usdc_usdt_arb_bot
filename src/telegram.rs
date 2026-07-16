@@ -27,10 +27,6 @@ pub async fn send_message(
     Ok(())
 }
 
-/// Verifies the bot token + chat_id are valid via `getChat`, without
-/// posting any visible message. Useful to fail fast at startup with a
-/// clear error instead of discovering a bad TELEGRAM_CHAT_ID only after
-/// the first trade.
 pub async fn verify_chat(http: &reqwest::Client, bot_token: &str, chat_id: &str) -> Result<()> {
     let url = format!("https://api.telegram.org/bot{}/getChat", bot_token);
 
