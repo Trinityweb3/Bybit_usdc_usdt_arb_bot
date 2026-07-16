@@ -47,14 +47,22 @@ Position management — exits, stop losses, profit taking — is entirely up to 
 ## Running the bot
 
 ```bash
-export BYBIT_API_KEY="..."
-export BYBIT_API_SECRET="..."
-export TELEGRAM_BOT_TOKEN="123456:AA..."   # Bot token from @BotFather
-export TELEGRAM_CHAT_ID="-100123456789"    # Chat or channel ID for /gm messages
-export DRY_RUN=true                        # Always start with this enabled
-# export BYBIT_TESTNET=true                # Optional: test on testnet first
+BYBIT_API_KEY=xxx
+BYBIT_API_SECRET=xxx
+BYBIT_TESTNET=true
 
-cargo run --release
+TELEGRAM_BOT_TOKEN=xxx
+TELEGRAM_CHAT_ID=xxx
+
+# true -> logging only, not executing orders and sending messages
+DRY_RUN=false
+LEVERAGE=10
+
+NOTIONAL_USDT=1000
+NOTIONAL_USDC=1000
+ENTRY_SPREAD_PCT=0.01 (1%)
+POLL_INTERVAL_SECS=3
+
 ```
 
 The bot needs to know `TELEGRAM_CHAT_ID` in advance. The easiest way is to send
