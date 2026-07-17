@@ -39,8 +39,8 @@ impl Config {
             testnet: env::var("BYBIT_TESTNET").map(|v| v == "true").unwrap_or(false),
             dry_run: env::var("DRY_RUN").map(|v| v != "false").unwrap_or(true),
             leverage: env::var("LEVERAGE").ok().and_then(|v| v.parse().ok()).unwrap_or(10),
-            notional_usdt: env::var("NOTIONAL_USDT").ok().and_then(|v| v.parse().ok()).unwrap_or(100.0),
-            notional_usdc: env::var("NOTIONAL_USDC").ok().and_then(|v| v.parse().ok()).unwrap_or(100.0),
+            notional_usdt: env::var("USDT_SIZE").ok().and_then(|v| v.parse().ok()).unwrap_or(100.0),
+            notional_usdc: env::var("USDC_SIZE").ok().and_then(|v| v.parse().ok()).unwrap_or(100.0),
             entry_spread_pct: env::var("ENTRY_SPREAD_PCT").ok().and_then(|v| v.parse().ok()).unwrap_or(0.004),
             poll_interval_secs: env::var("POLL_INTERVAL_SECS").ok().and_then(|v| v.parse().ok()).unwrap_or(3),
             telegram_bot_token,
@@ -247,7 +247,7 @@ async fn open_position(
     let min_usdc: f64 = pair.usdc.lot_size_filter.min_order_qty.parse().unwrap_or(0.0);
     if qty_f <= 0.0 || qty_f < min_usdt || qty_f < min_usdc {
         return Err(anyhow!(
-            "computed qty {} is below the lot-size minimum (usdt min {}, usdc min {}) - raise NOTIONAL_USDT/NOTIONAL_USDC",
+            "computed qty {} is below the lot-size minimum (usdt min {}, usdc min {}) - raise USDC_SIZE/USDT_SIZE in .env",
             qty_str,
             min_usdt,
             min_usdc
