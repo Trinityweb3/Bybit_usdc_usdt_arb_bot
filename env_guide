@@ -1,4 +1,3 @@
-
 BYBIT_API_KEY / BYBIT_API_SECRET
 
 1. Go to bybit.com, sign in to your account, click your avatar in the top-right corner, then open API (or go directly to "https://www.bybit.com/app/user/api-management").
@@ -7,13 +6,11 @@ BYBIT_API_KEY / BYBIT_API_SECRET
    - Contract → Orders: Read-Write
    - Contract → Positions: Read-Write
    - Leave everything else disabled, especially Withdrawal permissions. A trading bot should never have access to withdrawals.
-4. It is strongly recommended to bind the API key to the IP address of the server running the bot. This makes the key useless if it ever leaks.
-5. Bybit will show the API Key and API Secret only once. The secret cannot be viewed again later. If you lose it, you'll need to create a new key.
 
-→ "BYBIT_API_KEY" = your API Key
-→ "BYBIT_API_SECRET" = your API Secret
+1. BYBIT_API_KEY = your API Key
+2. BYBIT_API_SECRE = your API Secret
 
-TELEGRAM_BOT_TOKEN from @BotFather, it looks like "123456789:AAExxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+TELEGRAM_BOT_TOKEN from @BotFather, it looks like "11111111:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
    
 TELEGRAM_CHAT_ID follow instructions from @FIND_MY_ID_BOT 
 
@@ -24,32 +21,5 @@ These values are not tied to any external service — you choose them yourself.
 1. DRY_RUN is a boolian variable. "true" if you wanna get only logs. Orders dont execute. (test mode). Switch to "false" to correct work.
 LEVERAGE. I think it's obviously
 USDT_SIZE/USDC_SIZE Position size in dollars
-ENTRY_SPREAD_PCT| Entry threshold as a fraction ("0.004 = 0.4%")| A good starting point is your taker fee multiplied by two (since both legs pay fees), plus some extra margin for funding rate differences between USDT and USDC perpetual contracts. Otherwise, an apparent spread may disappear after fees and funding costs.
-"POLL_INTERVAL_SECS"| Market polling frequency| "3" seconds is a reasonable balance between responsiveness and Bybit rate limits. Public market endpoints are rate-limited per IP address, so polling too aggressively across many symbols can trigger "429" or "retCode" errors in the logs.
-
----
-
-Checklist before going live
-
-1. Set "BYBIT_TESTNET=true" and "DRY_RUN=true", then run:
-   
-   cargo run --release
-   
-   Make sure the logs show something like:
-   
-   ""Found N base coins...""
-   
-   and that spread opportunities are being detected periodically.
-
-2. Switch to:
-   
-   "BYBIT_TESTNET=true"
-   "DRY_RUN=false"
-   
-   Verify that orders are actually being placed on the testnet (check them in the "testnet.bybit.com" interface) and confirm that "/gm" messages arrive in the selected Telegram chat.
-
-3. Only after that should you switch to:
-   
-   "BYBIT_TESTNET=false"
-   
-   using your production API keys and a small "NOTIONAL_USDT" / "NOTIONAL_USDC" value for the first live run.
+ENTRY_SPREAD_PCT - Minimum spread for entering positions
+POLL_INTERVAL_SECS - Update frequency
