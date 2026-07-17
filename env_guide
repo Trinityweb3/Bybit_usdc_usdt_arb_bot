@@ -23,7 +23,7 @@ These values are not tied to any external service — you choose them yourself.
 
 1. DRY_RUN is a boolian variable. "true" if you wanna get only logs. Orders dont execute. (test mode). Switch to "false" to correct work.
 LEVERAGE. I think it's obviously
-NOTIONAL_USDT&NOTIONAL_USDC Position size in dollars
+USDT_SIZE/USDC_SIZE Position size in dollars
 ENTRY_SPREAD_PCT| Entry threshold as a fraction ("0.004 = 0.4%")| A good starting point is your taker fee multiplied by two (since both legs pay fees), plus some extra margin for funding rate differences between USDT and USDC perpetual contracts. Otherwise, an apparent spread may disappear after fees and funding costs.
 "POLL_INTERVAL_SECS"| Market polling frequency| "3" seconds is a reasonable balance between responsiveness and Bybit rate limits. Public market endpoints are rate-limited per IP address, so polling too aggressively across many symbols can trigger "429" or "retCode" errors in the logs.
 
